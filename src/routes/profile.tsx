@@ -13,6 +13,9 @@ import {
 } from "firebase/firestore";
 import { ITweet } from "../components/timeline";
 import Tweet from "../components/tweet";
+import FollowButton from "../components/follow-btn";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getFollowers, getFollowing } from "../utils/followInfo";
 
 const Wrapper = styled.div`
   display: flex;
@@ -52,17 +55,73 @@ const Tweets = styled.div`
   width: 100%;
 `;
 
-export default function Profile() {
+const Profile: React.FC = () => {
   const user = auth.currentUser;
-  const [avatar, setAvatar] = useState(user?.photoURL);
+  const location = useLocation();
+  const target = location.state.targetUserId;
+  const [nickname, setNickname] = useState("");
+  const [avatar, setAvatar] = useState("");
   const [tweets, setTweets] = useState<ITweet[]>([]);
+  const [followers, setFollowers] = useState<String[]>([]);
+  const [following, setFollowing] = useState<String[]>([]);
+  const locationRef = ref(storage, `avatars/${target}`);
+  const navigate = useNavigate();
+
+  //프로필 사진 리사이즈 함수
+  const resizeImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        img.src = e.target?.result as string;
+      };
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject("Canvas context is not available");
+
+        const { width, height } = img;
+        const minDimension = Math.min(width, height);
+
+        canvas.width = minDimension;
+        canvas.height = minDimension;
+
+        // 이미지의 중심 부분을 캔버스에 그리기
+        ctx.drawImage(
+          img,
+          (width - minDimension) / 2,
+          (height - minDimension) / 2,
+          minDimension,
+          minDimension,
+          0,
+          0,
+          minDimension,
+          minDimension
+        );
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error("Canvas is empty"));
+          }
+        }, file.type);
+      };
+
+      reader.readAsDataURL(file);
+    });
+  };
+
+  //아바타 업데이트
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = e.target;
     if (!user) return;
     if (files && files.length === 1) {
       const file = files[0];
-      const locationRef = ref(storage, `avatars/${user?.uid}`);
-      const result = await uploadBytes(locationRef, file);
+      const resizedImageBlob = await resizeImage(file);
+      const result = await uploadBytes(locationRef, resizedImageBlob);
       const avatarUrl = await getDownloadURL(result.ref);
       setAvatar(avatarUrl);
       await updateProfile(user, {
@@ -70,10 +129,45 @@ export default function Profile() {
       });
     }
   };
+
+  //아바타 주소 받아오기
+  const getAvatarURL = async () => {
+    if (target === user?.uid) {
+      setAvatar(user?.photoURL!);
+    } else {
+      try {
+        const photoURL = await getDownloadURL(locationRef);
+        setAvatar(photoURL);
+      } catch {
+        setAvatar("");
+      }
+    }
+  };
+
+  //유저 닉네임 받아오기
+  const getNickname = async () => {
+    if (target === user?.uid) {
+      setNickname(user?.displayName!);
+    } else {
+      const nicknameQuery = query(
+        collection(db, "users"),
+        where("userId", "==", target)
+      );
+
+      try {
+        const snapshot = await getDocs(nicknameQuery);
+        setNickname(snapshot.docs[0].data().nickname);
+      } catch {
+        setNickname("");
+      }
+    }
+  };
+
+  //유저 트윗 목록 가져오기
   const fetchTweets = async () => {
     const tweetQuery = query(
       collection(db, "tweets"),
-      where("userId", "==", user?.uid),
+      where("userId", "==", target),
       orderBy("createdAt", "desc"),
       limit(25)
     );
@@ -91,9 +185,28 @@ export default function Profile() {
     });
     setTweets(tweets);
   };
+
+  const fetchFolloweInfo = async () => {
+    const followerList = await getFollowers(user?.uid!);
+    const followingList = await getFollowing(user?.uid!);
+
+    setFollowers(followerList);
+    setFollowing(followingList);
+  };
+
+  const goToFollow = (showFollowers: boolean) => {
+    navigate("/follow", {
+      state: { targetUserId: target, showFollowers: showFollowers },
+    });
+  };
+
+  //초기설정
   useEffect(() => {
     fetchTweets();
-  }, []);
+    getAvatarURL();
+    getNickname();
+    fetchFolloweInfo();
+  }, [target]);
   return (
     <Wrapper>
       <AvatarUpload htmlFor="avatar">
@@ -114,13 +227,22 @@ export default function Profile() {
           </svg>
         )}
       </AvatarUpload>
-      <AvatarInput
-        onChange={onAvatarChange}
-        id="avatar"
-        type="file"
-        accept="image/*"
-      />
-      <Name>{user?.displayName ?? "Anonymous"}</Name>
+      {user?.uid === target ? (
+        <AvatarInput
+          onChange={onAvatarChange}
+          id="avatar"
+          type="file"
+          accept="image/*"
+        />
+      ) : null}
+      <Name>{nickname ? nickname : "Anonymous"}</Name>
+      <button onClick={() => goToFollow(true)}>
+        followers : {followers.length}
+      </button>
+      <button onClick={() => goToFollow(false)}>
+        following : {following.length}
+      </button>
+      {user?.uid !== target ? <FollowButton targetUserId={target} /> : null}
       <Tweets>
         {tweets.map((tweet) => (
           <Tweet key={tweet.id} {...tweet} />
@@ -128,4 +250,5 @@ export default function Profile() {
       </Tweets>
     </Wrapper>
   );
-}
+};
+export default Profile;

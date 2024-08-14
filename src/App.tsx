@@ -10,6 +10,8 @@ import { useEffect, useState } from "react";
 import LoadingScreen from "./components/loading-screen";
 import { auth } from "./firebase";
 import ProtectedRoute from "./components/protected-route";
+import Follow from "./routes/follow";
+import Search from "./routes/search";
 
 const Wrapper = styled.div`
   height: 100vh;
@@ -33,6 +35,14 @@ const router = createBrowserRouter([
       {
         path: "/profile",
         element: <Profile />,
+      },
+      {
+        path: "/follow",
+        element: <Follow />,
+      },
+      {
+        path: "/search",
+        element: <Search />,
       },
     ],
   },
@@ -60,6 +70,7 @@ const GlobalStyles = createGlobalStyle`
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
+
   const init = async () => {
     await auth.authStateReady();
     setIsLoading(false);

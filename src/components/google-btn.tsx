@@ -1,7 +1,8 @@
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import styled from "styled-components";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
+import { addDoc, collection } from "firebase/firestore";
 
 const Button = styled.span`
   margin-top: 50px;
@@ -28,7 +29,19 @@ export default function GoogleButton() {
   const onClick = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const signInInfo = await signInWithPopup(auth, provider);
+      const uid = signInInfo.user.uid;
+      const displayName = signInInfo.user.displayName;
+      if (
+        signInInfo.user.metadata.creationTime ===
+        signInInfo.user.metadata.lastSignInTime
+      ) {
+        await addDoc(collection(db, "users"), {
+          userId: uid,
+          nickname: displayName,
+        });
+      }
+
       navigate("/");
     } catch (error) {
       console.error(error);

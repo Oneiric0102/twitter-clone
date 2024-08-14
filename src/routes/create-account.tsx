@@ -1,7 +1,7 @@
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { Link, useNavigate } from "react-router-dom";
 import { FirebaseError } from "firebase/app";
 import {
@@ -13,6 +13,7 @@ import {
   Form,
 } from "../components/auth-components";
 import GoogleButton from "../components/google-btn";
+import { addDoc, collection } from "firebase/firestore";
 
 type Inputs = {
   name: string;
@@ -53,6 +54,10 @@ export default function CreateAccount() {
       console.log(credentials.user);
       await updateProfile(credentials.user, {
         displayName: data.name,
+      });
+      await addDoc(collection(db, "users"), {
+        userId: credentials.user.uid,
+        nickname: data.name,
       });
       navigate("/");
     } catch (e) {

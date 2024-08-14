@@ -3,6 +3,9 @@ import { ITweet } from "./timeline";
 import { auth, db, storage } from "../firebase";
 import { deleteDoc, doc } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
+import { useNavigate } from "react-router-dom";
+import ImageModal from "./image-modal";
+import { useState } from "react";
 
 const Wrapper = styled.div`
   display: grid;
@@ -18,6 +21,7 @@ const Photo = styled.img`
   width: 100px;
   height: 100px;
   border-radius: 15px;
+  cursor: pointer;
 `;
 
 const Username = styled.span`
@@ -42,8 +46,25 @@ const DeleteButton = styled.button`
   cursor: pointer;
 `;
 
-export default function Tweet({ username, photo, tweet, userId, id }: ITweet) {
+export default function Tweet({
+  username,
+  photo,
+  tweet,
+  userId,
+  id,
+  createdAt,
+}: ITweet) {
   const user = auth.currentUser;
+  const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const openModal = () => {
+    setIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsOpen(false);
+  };
   const onDelete = async () => {
     const delConfirm = confirm("트윗을 삭제하시겠습니까?");
     if (!delConfirm || user?.uid !== userId) return;
@@ -59,10 +80,16 @@ export default function Tweet({ username, photo, tweet, userId, id }: ITweet) {
     } finally {
     }
   };
+  const goToProfile = () => {
+    navigate("/profile", { state: { targetUserId: userId } });
+  };
   return (
     <Wrapper>
       <Column>
-        <Username>{username}</Username>
+        <Username>
+          <button onClick={goToProfile}>{username}</button>
+        </Username>
+
         <Payload>{tweet}</Payload>
         {user?.uid === userId ? (
           <DeleteButton onClick={onDelete}>Delete</DeleteButton>
@@ -70,7 +97,8 @@ export default function Tweet({ username, photo, tweet, userId, id }: ITweet) {
       </Column>
       {photo ? (
         <Column>
-          <Photo src={photo} />
+          <Photo onClick={() => openModal()} src={photo} />
+          <ImageModal isOpen={isOpen} imageUrl={photo} onClose={closeModal} />
         </Column>
       ) : null}
     </Wrapper>
