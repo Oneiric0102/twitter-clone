@@ -13,51 +13,55 @@ type Inputs = {
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.75rem;
+  padding: 0 1rem;
 `;
 const TextArea = styled.textarea`
-  border: 2px solid white;
-  padding: 20px;
-  border-radius: 20px;
-  font-size: 16px;
-  color: white;
-  background-color: black;
-  width: 100%;
+  border: 2px solid transparent;
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  font-size: 1rem;
+  color: ${(props) => props.theme.colors.primaryText};
+  background-color: ${(props) => props.theme.colors.secondary};
   resize: none;
-  font-family: system-ui, sans-serif;
   &::placeholder {
-    font-family: system-ui, sans-serif;
+    color: ${(props) => props.theme.colors.secondaryText};
   }
   &:focus {
     outline: none;
-    border-color: #1d9bf0;
+    border-color: ${(props) => props.theme.colors.primary};
   }
 `;
 const AttachFileButton = styled.label`
-  padding: 10px 0px;
-  color: #1d9bf0;
+  padding: 0.75rem 0;
+  color: ${(props) => props.theme.colors.primary};
   text-align: center;
-  border-radius: 20px;
-  border: 1px solid #1d9bf0;
-  font-size: 14px;
+  border-radius: 1.25rem;
+  border: 2px solid ${(props) => props.theme.colors.primary};
   font-weight: 600;
   cursor: pointer;
+  &:hover {
+    border: 2px solid ${(props) => props.theme.colors.primaryHover};
+    color: ${(props) => props.theme.colors.primaryHover};
+  }
+  transition: all 0.2s ease-out;
 `;
 const AttachFileInput = styled.input`
   display: none;
 `;
 const SubmitBtn = styled.input`
-  background-color: #1d9bf0;
+  background-color: ${(props) => props.theme.colors.primary};
   color: white;
   border: none;
-  padding: 10px 0px;
-  border-radius: 20px;
-  font-size: 16px;
+  padding: 0.75rem 0;
+  border-radius: 1.25rem;
+  font-size: 1rem;
   cursor: pointer;
   &:hover,
   &:active {
     opacity: 0.9;
   }
+  transition: all 0.2s ease-out;
 `;
 
 export default function PostTweetForm() {

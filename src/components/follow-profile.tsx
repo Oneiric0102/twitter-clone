@@ -1,126 +1,106 @@
 import styled from "styled-components";
 import { auth, db, storage } from "../firebase";
 import { useEffect, useState } from "react";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { updateProfile } from "firebase/auth";
-import {
-  collection,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  where,
-} from "firebase/firestore";
-import { ITweet } from "../components/timeline";
+import { getDownloadURL, ref } from "firebase/storage";
 import FollowButton from "../components/follow-btn";
+import { useNavigate } from "react-router-dom";
 
 const Wrapper = styled.div`
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap: 20px;
+  ${(props) => props.theme.flex.rowBetweenCenter};
+  border: 1px solid ${(props) => props.theme.colors.border};
+  padding: 1rem;
+  border-radius: 1rem;
+  width: calc(100% - 2rem);
+  height: 3rem;
 `;
-const AvatarUpload = styled.label`
-  width: 80px;
+const AvatarWrapper = styled.div`
+  width: 2rem;
   overflow: hidden;
-  height: 80px;
+  height: 2rem;
   border-radius: 50%;
-  background-color: #1d9bf0;
-  cursor: pointer;
+  background-color: ${(props) => props.theme.colors.primary};
   display: flex;
   justify-content: center;
   align-items: center;
   svg {
-    width: 50px;
+    width: 1rem;
   }
+`;
+const UserInfo = styled.div`
+  ${(props) => props.theme.flex.rowCenter};
+  gap: 0.5rem;
+  cursor: pointer;
 `;
 
 const AvatarImg = styled.img`
   width: 100%;
 `;
-const AvatarInput = styled.input`
-  display: none;
-`;
 const Name = styled.span`
-  font-size: 22px;
+  font-size: 1.25rem;
 `;
 
-const Tweets = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-`;
+interface FollowProfileProps {
+  targetUserId: string;
+  nickname: string;
+}
 
-export default function Profile() {
+const FollowProfile: React.FC<FollowProfileProps> = ({
+  targetUserId,
+  nickname,
+}) => {
   const user = auth.currentUser;
   const [avatar, setAvatar] = useState(user?.photoURL);
-  const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { files } = e.target;
-    if (!user) return;
-    if (files && files.length === 1) {
-      const file = files[0];
-      const locationRef = ref(storage, `avatars/${user?.uid}`);
-      const result = await uploadBytes(locationRef, file);
-      const avatarUrl = await getDownloadURL(result.ref);
-      setAvatar(avatarUrl);
-      await updateProfile(user, {
-        photoURL: avatarUrl,
-      });
+  const locationRef = ref(storage, `avatars/${targetUserId}`);
+  const navigate = useNavigate();
+
+  //아바타 주소 받아오기
+  const getAvatarURL = async () => {
+    if (targetUserId === user?.uid) {
+      setAvatar(user?.photoURL!);
+    } else {
+      try {
+        const photoURL = await getDownloadURL(locationRef);
+        setAvatar(photoURL);
+      } catch {
+        setAvatar("");
+      }
     }
   };
-  const fetchTweets = async () => {
-    const tweetQuery = query(
-      collection(db, "tweets"),
-      where("userId", "==", user?.uid),
-      orderBy("createdAt", "desc"),
-      limit(25)
-    );
-    const snapshot = await getDocs(tweetQuery);
-    const tweets = snapshot.docs.map((doc) => {
-      const { tweet, createdAt, userId, username, photo } = doc.data();
-      return {
-        tweet,
-        createdAt,
-        userId,
-        username,
-        photo,
-        id: doc.id,
-      };
-    });
-    setTweets(tweets);
+  const goToProfile = () => {
+    navigate("/profile", { state: { targetUserId: targetUserId } });
   };
+
   useEffect(() => {
-    fetchTweets();
-  }, []);
+    getAvatarURL();
+  }, [targetUserId]);
   return (
     <Wrapper>
-      <AvatarUpload htmlFor="avatar">
-        {avatar ? (
-          <AvatarImg src={avatar} />
-        ) : (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="size-6"
-          >
-            <path
-              fillRule="evenodd"
-              d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z"
-              clipRule="evenodd"
-            />
-          </svg>
-        )}
-      </AvatarUpload>
-      <AvatarInput
-        onChange={onAvatarChange}
-        id="avatar"
-        type="file"
-        accept="image/*"
-      />
-      <Name>{user?.displayName ?? "Anonymous"}</Name>
-      <FollowButton targetUserId="8fhCLhYwdpgxxp8gwxMDqurtYgW2" />
+      <UserInfo onClick={goToProfile}>
+        <AvatarWrapper>
+          {avatar ? (
+            <AvatarImg src={avatar} />
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="size-6"
+            >
+              <path
+                fillRule="evenodd"
+                d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+        </AvatarWrapper>
+        <Name>{nickname ?? "Anonymous"}</Name>
+      </UserInfo>
+      {user?.uid !== targetUserId ? (
+        <FollowButton targetUserId={targetUserId} />
+      ) : null}
     </Wrapper>
   );
-}
+};
+
+export default FollowProfile;

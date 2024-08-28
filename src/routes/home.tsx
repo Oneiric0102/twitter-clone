@@ -4,12 +4,13 @@ import Timeline from "../components/timeline";
 
 const Wrapper = styled.div`
   display: grid;
-  gap: 50px;
+  gap: 1rem;
   overflow-y: scroll;
-  grid-template-rows: 1fr 5fr;
+  grid-template-rows: 16.125rem auto;
   &::-webkit-scrollbar {
     display: none;
   }
+  padding: 2.5rem 0rem;
 `;
 
 export default function Home() {

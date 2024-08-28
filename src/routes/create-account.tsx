@@ -8,9 +8,10 @@ import {
   Error,
   Input,
   Switcher,
-  Title,
+  XLogo,
   Wrapper,
   Form,
+  Button,
 } from "../components/auth-components";
 import GoogleButton from "../components/google-btn";
 import { addDoc, collection } from "firebase/firestore";
@@ -26,6 +27,8 @@ export default function CreateAccount() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   const { register, handleSubmit } = useForm<Inputs>({
     mode: "onSubmit",
     defaultValues: {
@@ -37,13 +40,29 @@ export default function CreateAccount() {
 
   const onSubmit: SubmitHandler<Inputs> = async (data: Inputs) => {
     setError("");
-    if (
-      isLoading ||
-      data.name === "" ||
-      data.email === "" ||
-      data.password === ""
-    )
+    if (isLoading) {
       return;
+    } else if (data.name === "") {
+      setError("닉네임을 입력해주세요");
+      return;
+    } else if (data.name.length < 2 || data.name.length > 12) {
+      setError("닉네임은 2글자 이상, 12글자 이하만 가능합니다");
+      return;
+    } else if (data.email === "") {
+      setError("이메일을 입력해주세요");
+      return;
+    } else if (!emailRegex.test(data.email)) {
+      setError("이메일이 유효하지 않습니다");
+      return;
+    } else if (data.password === "") {
+      setError("비밀번호를 입력해주세요");
+      return;
+    } else if (data.password.length < 8 || data.name.length > 16) {
+      setError("비밀번호는 8글자 이상, 16글자 이하만 가능합니다");
+      return;
+    }
+
+    console.log(error);
     try {
       setIsLoading(true);
       const credentials = await createUserWithEmailAndPassword(
@@ -67,34 +86,34 @@ export default function CreateAccount() {
     } finally {
       setIsLoading(false);
     }
+    setError("");
   };
 
   return (
     <Wrapper>
-      <Title>Join 𝕏</Title>
+      <XLogo />
       <Form onSubmit={handleSubmit(onSubmit)}>
-        <Input {...register("name", { required: true })} placeholder="Name" />
+        <Input {...register("name")} placeholder="Name" />
         <Input
-          {...register("email", {
-            required: true,
-          })}
+          {...register("email")}
           placeholder="Email"
-          type="email"
+          type="text"
+          inputMode="email"
         />
         <Input
-          {...register("password", { required: true })}
+          {...register("password")}
           placeholder="Password"
           type="password"
         />
-        <Input
+        <Switcher>
+          이미 계정이 있으신가요? <Link to="/login">로그인하기 &rarr;</Link>
+        </Switcher>
+        {error !== "" ? <Error>{error}</Error> : null}
+        <Button
           type="submit"
           value={isLoading ? "Loading..." : "Create Account"}
         />
       </Form>
-      {error !== "" ? <Error>{error}</Error> : null}
-      <Switcher>
-        이미 계정이 있으신가요? <Link to="/login">로그인하기 &rarr;</Link>
-      </Switcher>
       <GoogleButton />
     </Wrapper>
   );

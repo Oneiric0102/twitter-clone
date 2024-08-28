@@ -8,12 +8,12 @@ import {
   Error,
   Input,
   Switcher,
-  Title,
+  XLogo,
   Wrapper,
   Form,
+  Button,
 } from "../components/auth-components";
 import GoogleButton from "../components/google-btn";
-
 type Inputs = {
   email: string;
   password: string;
@@ -50,7 +50,7 @@ export default function Login() {
 
   return (
     <Wrapper>
-      <Title>Log into 𝕏</Title>
+      <XLogo />
       <Form onSubmit={handleSubmit(onSubmit)}>
         <Input
           {...register("email", {
@@ -64,12 +64,12 @@ export default function Login() {
           placeholder="Password"
           type="password"
         />
-        <Input type="submit" value={isLoading ? "Loading..." : "Log in"} />
+        <Switcher>
+          계정이 없으신가요? <Link to="/create-account">가입하기 &rarr;</Link>
+        </Switcher>
+        <Button type="submit" value={isLoading ? "Loading..." : "Log in"} />
       </Form>
       {error !== "" ? <Error>{error}</Error> : null}
-      <Switcher>
-        계정이 없으신가요? <Link to="/create-account">가입하기 &rarr;</Link>
-      </Switcher>
       <GoogleButton />
     </Wrapper>
   );

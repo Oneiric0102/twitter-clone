@@ -4,6 +4,35 @@ import { doc, getDoc, writeBatch } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { getAuth } from "firebase/auth";
 
+export const Button = styled.button`
+  padding: 0.5rem 1.25rem;
+  margin: 0.25rem 0;
+  border-radius: 1.25rem;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 10rem;
+  color: ${(props) => props.theme.colors.primaryText};
+  &.follow {
+    background-color: ${(props) => props.theme.colors.primary};
+    border: none;
+    &:hover {
+      background-color: ${(props) => props.theme.colors.primaryHover};
+    }
+  }
+  &.following {
+    background-color: ${(props) => props.theme.colors.surface};
+    border: 2px solid ${(props) => props.theme.colors.border};
+    &:hover {
+      background-color: ${(props) => props.theme.colors.secondary};
+    }
+  }
+  background-color: ${(props) => props.theme.colors.primaryText};
+  font-weight: bold;
+  &:hover {
+    background-color: ${(props) => props.theme.colors.secondaryTextHover};
+  }
+`;
+
 const followUser = async (
   currentUserId: string,
   targetUserId: string
@@ -106,13 +135,21 @@ const FollowButton: React.FC<FollowButtonProps> = ({ targetUserId }) => {
   };
 
   if (loading) {
-    return <button disabled>Loading...</button>;
+    return (
+      <Button disabled className="following">
+        Loading...
+      </Button>
+    );
   }
 
   return isFollowing ? (
-    <button onClick={handleUnfollow}>Unfollow</button>
+    <Button onClick={handleUnfollow} className="following">
+      팔로잉
+    </Button>
   ) : (
-    <button onClick={handleFollow}>Follow</button>
+    <Button onClick={handleFollow} className="follow">
+      팔로우하기
+    </Button>
   );
 };
 

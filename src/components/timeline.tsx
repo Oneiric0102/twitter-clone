@@ -20,13 +20,15 @@ export interface ITweet {
   tweet: string;
   userId: string;
   username: string;
-  createdAt: Timestamp;
+  createdAt: number;
 }
 
 const Wrapper = styled.div`
-  display: flex;
-  gap: 10px;
-  flex-direction: column;
+  ${(props) => props.theme.flex.columnCenterTop};
+  width: calc(100% - 2rem);
+  gap: 1rem;
+  border-top: 1px solid ${(props) => props.theme.colors.border};
+  padding: 1rem 1rem;
 `;
 
 export default function Timeline() {

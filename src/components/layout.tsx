@@ -1,44 +1,94 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { auth } from "../firebase";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const Wrapper = styled.div`
   display: grid;
-  gap: 20px;
-  grid-template-columns: 1fr 4fr;
-  padding: 50px 0px;
+  grid-template-columns: 5rem auto;
   width: 100%;
-  max-width: 860px;
+  height: 100vh;
+  //overflow-y: hidden;
+  max-width: 64rem;
+  @media (max-width: 767px) {
+    grid-template-columns: none;
+    grid-template-rows: auto 5rem;
+    gap: 0;
+  }
+`;
+const OutletWrapper = styled.div`
+  margin: 0.5rem 0;
+  overflow-y: auto;
+  height: calc(100vh - 1rem);
+  &::-webkit-scrollbar {
+    width: 0.3rem;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${(props) => props.theme.colors.scrollTrack};
+    border-radius: 0.1rem;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${(props) => props.theme.colors.border};
+    border-radius: 0.1rem;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${(props) => props.theme.colors.primary40};
+  }
+
+  @media (max-width: 767px) {
+    height: auto;
+    margin: 0;
+  }
 `;
 const Menu = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  ${(props) => props.theme.flex.columnCenterTop};
+  gap: 1.5rem;
+  padding: 3rem 0;
+  height: calc(100vh - 6rem);
+  border-right: 0.0625rem solid ${(props) => props.theme.colors.border};
+  @media (max-width: 767px) {
+    height: auto;
+    ${(props) => props.theme.flex.rowBetweenCenter};
+    padding: 0 3rem;
+    border-left: none;
+    border-top: 0.0625rem solid ${(props) => props.theme.colors.border};
+  }
 `;
 const MenuItem = styled.div`
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid white;
+  border: none;
   height: 50px;
   width: 50px;
   border-radius: 50%;
   svg {
     width: 30px;
-    fill: white;
-  }
-  &.log-out {
-    border-color: tomato;
-    svg {
-      fill: tomato;
+    fill: ${(props) => props.theme.colors.primaryText};
+    &:hover {
+      fill: ${(props) => props.theme.colors.secondaryTextHover};
     }
   }
+  &.log-out {
+    svg {
+      fill: ${(props) => props.theme.colors.delete};
+      &:hover {
+        fill: ${(props) => props.theme.colors.deleteHover};
+      }
+    }
+  }
+  &:hover {
+    background-color: ${(props) => props.theme.colors.secondary};
+  }
+  transition: all 0.2s ease-out;
 `;
 
 export default function Layout() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
   const navigate = useNavigate();
   const onLogOut = async () => {
     const ok = confirm("Are you sure you want to log out?");
@@ -47,10 +97,28 @@ export default function Layout() {
       navigate("/login");
     }
   };
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    // 이벤트 리스너 추가
+    window.addEventListener("resize", handleResize);
+
+    // 컴포넌트가 언마운트 될 때 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   return (
     <>
       <Wrapper>
+        {isMobile ? (
+          <OutletWrapper>
+            <Outlet />
+          </OutletWrapper>
+        ) : null}
         <Menu>
           <Link
             to="/profile"
@@ -117,7 +185,11 @@ export default function Layout() {
             </svg>
           </MenuItem>
         </Menu>
-        <Outlet />
+        {isMobile ? null : (
+          <OutletWrapper>
+            <Outlet />
+          </OutletWrapper>
+        )}
       </Wrapper>
     </>
   );

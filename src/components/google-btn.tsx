@@ -5,23 +5,24 @@ import { useNavigate } from "react-router-dom";
 import { addDoc, collection } from "firebase/firestore";
 
 const Button = styled.span`
-  margin-top: 50px;
-  background-color: white;
-  font-weight: 600;
+  ${(props) => props.theme.flex.rowCenter};
+  background-color: ${(props) => props.theme.colors.primaryText};
+  font-weight: bold;
   width: 100%;
-  color: black;
-  padding: 10px 20px;
-  border-radius: 50px;
-  border: 0;
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  justify-content: center;
+  height: 2.625rem;
+  color: ${(props) => props.theme.colors.background};
+  margin: 0.25rem 0;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  border: none;
   cursor: pointer;
+  &:hover {
+    background-color: ${(props) => props.theme.colors.secondaryTextHover};
+  }
 `;
 
 const Logo = styled.img`
-  height: 25px;
+  height: 2.5rem;
 `;
 
 export default function GoogleButton() {

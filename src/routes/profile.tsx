@@ -21,20 +21,21 @@ const Wrapper = styled.div`
   display: flex;
   align-items: center;
   flex-direction: column;
+  padding: 2.5rem 0rem;
   gap: 20px;
 `;
 const AvatarUpload = styled.label`
-  width: 80px;
+  width: 5rem;
   overflow: hidden;
-  height: 80px;
+  height: 5rem;
   border-radius: 50%;
-  background-color: #1d9bf0;
+  background-color: ${(props) => props.theme.colors.primary};
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
   svg {
-    width: 50px;
+    width: 3rem;
   }
 `;
 
@@ -45,14 +46,35 @@ const AvatarInput = styled.input`
   display: none;
 `;
 const Name = styled.span`
-  font-size: 22px;
+  color: ${(props) => props.theme.colors.primaryText};
+  font-size: 1.25rem;
 `;
 
 const Tweets = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
+  ${(props) => props.theme.flex.columnCenterTop};
+  width: calc(100% - 2rem);
+  gap: 1rem;
+  border-top: 1px solid ${(props) => props.theme.colors.border};
+  padding: 1rem 1rem;
+  margin-top: 1rem;
+`;
+
+const Row = styled.div`
+  ${(props) => props.theme.flex.rowCenter};
+  gap: 1rem;
+`;
+const FollowLink = styled.a`
+  ${(props) => props.theme.flex.rowCenter};
+  gap: 0.5rem;
+  cursor: pointer;
+`;
+
+const FollowNumber = styled.div`
+  color: ${(props) => props.theme.colors.primaryText};
+  font-weight: bold;
+`;
+const FollowLabel = styled.div`
+  color: ${(props) => props.theme.colors.secondaryText};
 `;
 
 const Profile: React.FC = () => {
@@ -187,8 +209,8 @@ const Profile: React.FC = () => {
   };
 
   const fetchFolloweInfo = async () => {
-    const followerList = await getFollowers(user?.uid!);
-    const followingList = await getFollowing(user?.uid!);
+    const followerList = await getFollowers(target);
+    const followingList = await getFollowing(target);
 
     setFollowers(followerList);
     setFollowing(followingList);
@@ -236,12 +258,16 @@ const Profile: React.FC = () => {
         />
       ) : null}
       <Name>{nickname ? nickname : "Anonymous"}</Name>
-      <button onClick={() => goToFollow(true)}>
-        followers : {followers.length}
-      </button>
-      <button onClick={() => goToFollow(false)}>
-        following : {following.length}
-      </button>
+      <Row>
+        <FollowLink onClick={() => goToFollow(true)}>
+          <FollowNumber>{followers.length}</FollowNumber>{" "}
+          <FollowLabel>팔로우</FollowLabel>
+        </FollowLink>
+        <FollowLink onClick={() => goToFollow(false)}>
+          <FollowNumber> {following.length} </FollowNumber>{" "}
+          <FollowLabel>팔로잉</FollowLabel>
+        </FollowLink>
+      </Row>
       {user?.uid !== target ? <FollowButton targetUserId={target} /> : null}
       <Tweets>
         {tweets.map((tweet) => (
