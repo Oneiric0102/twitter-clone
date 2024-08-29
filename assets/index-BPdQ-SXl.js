@@ -4171,6 +4171,6 @@ Content-Type: `+u.contentType+`\r
   *{
   font-family: ${t=>t.theme.font.content};
   }
-`;var h6={};const d6=H.div`
+`,h6=H.div`
   ${_l.flex.rowCenter};
-`,f6=vb([{path:"/",element:P(Q3,{children:P(FU,{})}),children:[{path:"",element:P(P3,{})},{path:"/profile",element:P(U3,{})},{path:"/follow",element:P(i6,{})},{path:"/search",element:P(u6,{})}]},{path:"/login",element:P(H3,{})},{path:"/create-account",element:P(q3,{})}],{basename:h6.PUBLIC_URL}),p6=()=>{const[t,e]=x.useState(!0),n=async()=>{await Qn.authStateReady(),e(!1)};return x.useEffect(()=>{n()},[]),Pe(TO,{theme:_l,children:[P(c6,{}),P(d6,{children:t?P(G3,{}):P(lb,{router:f6})})]})};Zp.createRoot(document.getElementById("root")).render(P(ze.StrictMode,{children:P(p6,{})}));
+`,d6=vb([{path:"/",element:P(Q3,{children:P(FU,{})}),children:[{path:"",element:P(P3,{})},{path:"/profile",element:P(U3,{})},{path:"/follow",element:P(i6,{})},{path:"/search",element:P(u6,{})}]},{path:"/login",element:P(H3,{})},{path:"/create-account",element:P(q3,{})}],{basename:"/twitter-clone"}),f6=()=>{const[t,e]=x.useState(!0),n=async()=>{await Qn.authStateReady(),e(!1)};return x.useEffect(()=>{n()},[]),Pe(TO,{theme:_l,children:[P(c6,{}),P(h6,{children:t?P(G3,{}):P(lb,{router:d6})})]})};Zp.createRoot(document.getElementById("root")).render(P(ze.StrictMode,{children:P(f6,{})}));
