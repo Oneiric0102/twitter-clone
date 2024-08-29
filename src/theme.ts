@@ -1,6 +1,7 @@
 const theme = {
   colors: {
     background: "rgba(18, 18, 18, 1)", // 다크 배경 색상
+    modalBackground: "rgba(18, 18, 18, 0.7)",
     primary: "rgba(33, 150, 243, 1)", // 파란색 계열 기본 색상
     primaryHover: "rgba(33, 150, 243, 0.8)", // 파란색 계열 호버 색상
     primary40: "rgba(33, 150, 243, 0.4)", // 파란색 계열 반투명 색상
@@ -68,9 +69,15 @@ const theme = {
     `,
     columnLeftCenter: `
       display: flex;
-      flex-direction: column;;
+      flex-direction: column;
       justify-content: center;
-      align-items: flex-start;;
+      align-items: flex-start;
+    `,
+    columnRightCenter: `
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
     `,
     columnCenterTop: `
       display: flex;

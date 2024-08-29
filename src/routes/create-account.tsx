@@ -16,6 +16,12 @@ import {
 import GoogleButton from "../components/google-btn";
 import { addDoc, collection } from "firebase/firestore";
 
+/*
+  파일명 : src/routes/create-account.tsx
+  용도 : 회원가입 페이지
+*/
+
+//회원가입 Form 입력 타입 정의
 type Inputs = {
   name: string;
   email: string;
@@ -25,10 +31,11 @@ type Inputs = {
 export default function CreateAccount() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(""); //화면에 출력될 에러메세지
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; //이메일 유효성 검증 정규표현식
 
+  //회원가입 Form
   const { register, handleSubmit } = useForm<Inputs>({
     mode: "onSubmit",
     defaultValues: {
@@ -38,6 +45,7 @@ export default function CreateAccount() {
     },
   });
 
+  //회원가입 Submit 함수
   const onSubmit: SubmitHandler<Inputs> = async (data: Inputs) => {
     setError("");
     if (isLoading) {
@@ -70,7 +78,6 @@ export default function CreateAccount() {
         data.email,
         data.password
       );
-      console.log(credentials.user);
       await updateProfile(credentials.user, {
         displayName: data.name,
       });

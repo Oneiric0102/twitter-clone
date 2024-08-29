@@ -2,6 +2,10 @@ import styled from "styled-components";
 import PostTweetForm from "../components/post-tweet-form";
 import Timeline from "../components/timeline";
 
+/*
+  파일명 : src/routers/home.tsx
+  용도 : home페이지
+*/
 const Wrapper = styled.div`
   display: grid;
   gap: 1rem;

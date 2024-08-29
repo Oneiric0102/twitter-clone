@@ -4,7 +4,6 @@ import {
   onSnapshot,
   orderBy,
   query,
-  Timestamp,
   where,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
@@ -13,6 +12,11 @@ import { auth, db } from "../firebase";
 import Tweet from "./tweet";
 import { Unsubscribe } from "firebase/auth";
 import { getFollowing } from "../utils/followInfo";
+
+/*
+  파일명 : src/components/timeline.tsx
+  용도 : home페이지 트윗 목록
+*/
 
 export interface ITweet {
   id: string;
@@ -23,37 +27,45 @@ export interface ITweet {
   createdAt: number;
 }
 
+//목록 전체 컨테이너 스타일
 const Wrapper = styled.div`
   ${(props) => props.theme.flex.columnCenterTop};
   width: calc(100% - 2rem);
   gap: 1rem;
-  border-top: 1px solid ${(props) => props.theme.colors.border};
+  border-top: 0.0625rem solid ${(props) => props.theme.colors.border};
   padding: 1rem 1rem;
 `;
 
+//트윗이 없을 경우 출력되는 문구 스타일
+const NoneDiv = styled.div`
+  ${(props) => props.theme.flex.rowCenter};
+  width: 100%;
+  padding: 5rem 0;
+  font-size: 1.5rem;
+  color: ${(props) => props.theme.colors.secondaryText};
+`;
+
 export default function Timeline() {
-  const [tweets, setTweets] = useState<ITweet[]>([]);
-  const [following, setFollowing] = useState<String[]>([]);
+  const [tweets, setTweets] = useState<ITweet[]>([]); //트윗 목록
+  const [following, setFollowing] = useState<String[]>([]); //팔로우중인 유저 목록
   const [loading, setLoading] = useState<boolean>(true);
-  const currentUser = auth.currentUser;
+  const currentUser = auth.currentUser; //현재 유저
 
   useEffect(() => {
     if (currentUser) {
-      if (following) {
-        const fetchData = async () => {
-          const followingList = await getFollowing(currentUser.uid);
-          setFollowing(followingList);
-          setFollowing((current) => [currentUser.uid, ...current]);
-          setLoading(false);
-        };
+      //로그인 되어있다면 팔로잉 목록 업데이트
+      const fetchData = async () => {
+        const followingList = await getFollowing(currentUser.uid);
+        setFollowing(followingList);
+        setFollowing((current) => [currentUser.uid, ...current]);
+        setLoading(false);
+      };
 
-        fetchData();
-      } else {
-        setFollowing([currentUser.uid]);
-      }
+      fetchData();
     }
   }, [currentUser]);
 
+  //팔로잉 목록 변경 시 트윗 목록 업데이트
   useEffect(() => {
     if (following.length > 0) {
       let unsubscrive: Unsubscribe | null = null;
@@ -91,9 +103,11 @@ export default function Timeline() {
   }
   return (
     <Wrapper>
-      {tweets.map((tweet) => (
-        <Tweet key={tweet.id} {...tweet} />
-      ))}
+      {tweets.length === 0 ? (
+        <NoneDiv>타임라인에 트윗이 없습니다.</NoneDiv>
+      ) : (
+        tweets.map((tweet) => <Tweet key={tweet.id} {...tweet} />)
+      )}
     </Wrapper>
   );
 }

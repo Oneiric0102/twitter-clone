@@ -1,8 +1,13 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { auth } from "../firebase";
-import { useEffect, useState } from "react";
 
+/*
+  파일명 : src/components/layout.tsx
+  용도 : 로그인 이후 표시되는 페이지들의 기본 레이아웃
+*/
+
+//전체 페이지 컨테이너 스타일
 const Wrapper = styled.div`
   display: grid;
   grid-template-columns: 5rem auto;
@@ -14,8 +19,16 @@ const Wrapper = styled.div`
     grid-template-columns: none;
     grid-template-rows: auto 5rem;
     gap: 0;
+    .menu {
+      order: 2;
+    }
+    .outlet {
+      order: 1;
+    }
   }
 `;
+
+//메인 컨텐츠 컴포넌트 컨테이너 스타일
 const OutletWrapper = styled.div`
   margin: 0.5rem 0;
   overflow-y: auto;
@@ -43,6 +56,8 @@ const OutletWrapper = styled.div`
     margin: 0;
   }
 `;
+
+//사이드, 하단 메뉴 바 스타일
 const Menu = styled.div`
   ${(props) => props.theme.flex.columnCenterTop};
   gap: 1.5rem;
@@ -57,6 +72,8 @@ const Menu = styled.div`
     border-top: 0.0625rem solid ${(props) => props.theme.colors.border};
   }
 `;
+
+//메뉴 버튼 스타일
 const MenuItem = styled.div`
   cursor: pointer;
   display: flex;
@@ -88,38 +105,21 @@ const MenuItem = styled.div`
 `;
 
 export default function Layout() {
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
   const navigate = useNavigate();
+
+  //로그아웃 onClick 함수
   const onLogOut = async () => {
-    const ok = confirm("Are you sure you want to log out?");
+    const ok = confirm("로그아웃 하시겠습니까?");
     if (ok) {
       await auth.signOut();
       navigate("/login");
     }
   };
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
-    // 이벤트 리스너 추가
-    window.addEventListener("resize", handleResize);
-
-    // 컴포넌트가 언마운트 될 때 이벤트 리스너 제거
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
 
   return (
     <>
       <Wrapper>
-        {isMobile ? (
-          <OutletWrapper>
-            <Outlet />
-          </OutletWrapper>
-        ) : null}
-        <Menu>
+        <Menu className="menu">
           <Link
             to="/profile"
             state={{
@@ -185,11 +185,9 @@ export default function Layout() {
             </svg>
           </MenuItem>
         </Menu>
-        {isMobile ? null : (
-          <OutletWrapper>
-            <Outlet />
-          </OutletWrapper>
-        )}
+        <OutletWrapper className="outlet">
+          <Outlet />
+        </OutletWrapper>
       </Wrapper>
     </>
   );

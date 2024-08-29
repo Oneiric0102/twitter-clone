@@ -7,9 +7,16 @@ import { useNavigate } from "react-router-dom";
 import ImageModal from "./image-modal";
 import { useEffect, useState } from "react";
 
+/*
+  파일명 : src/components/tweet.tsx
+  용도 : 개별 트윗 컴포넌트
+*/
+
+//트윗 컨테이너 스타일
 const Wrapper = styled.div`
   display: grid;
   width: calc(100% - 2.5rem);
+  min-height: 8rem;
   grid-template-columns: auto 8rem;
   padding: 1.25rem;
   background-color: ${(props) => props.theme.colors.surface};
@@ -17,11 +24,13 @@ const Wrapper = styled.div`
   align-items: start;
 `;
 
+//column방향으로 요소를 나열하기 위한 컨테이너
 const Column = styled.div`
   ${(props) => props.theme.flex.columnLeftCenter};
   gap: 0.5rem;
 `;
 
+//유저 아바타 스타일
 const AvatarWrapper = styled.div`
   width: 1.5rem;
   overflow: hidden;
@@ -37,20 +46,24 @@ const AvatarWrapper = styled.div`
   }
 `;
 
-const UserContainer = styled.div`
+//유저 아바타, 닉네임 등 내용이 아닌 정보를 담고있는 컨테이너
+const InfoContainer = styled.div`
   ${(props) => props.theme.flex.rowLeftCenter};
   gap: 0.5rem;
 `;
 
+//아바타 이미지 크기 조정
 const AvatarImg = styled.img`
   width: 100%;
 `;
 
+//업로드 날짜 스타일
 const DateWrapper = styled.div`
   color: ${(props) => props.theme.colors.secondaryText};
   font-size: 0.75rem;
 `;
 
+//첨부된 사진 스타일
 const Photo = styled.img`
   width: 8rem;
   height: 8rem;
@@ -58,17 +71,20 @@ const Photo = styled.img`
   cursor: pointer;
 `;
 
+//유저 이름 스타일
 const Username = styled.span`
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
 `;
 
+//트윗 내용 컨테이너
 const Payload = styled.p`
   margin: 0.75rem 0;
   font-size: 1rem;
 `;
 
+//트윗 삭제 버튼 스타일
 const DeleteButton = styled.button`
   ${(props) => props.theme.flex.rowCenter};
   border: 0;
@@ -96,20 +112,23 @@ export default function Tweet({
   id,
   createdAt,
 }: ITweet) {
-  const user = auth.currentUser;
+  const user = auth.currentUser; //현재 유저
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
-  const [avatar, setAvatar] = useState("");
-  const locationRef = ref(storage, `avatars/${userId}`);
+  const [isOpen, setIsOpen] = useState(false); //트윗 첨부 이미지 모달창 오픈 여부
+  const [avatar, setAvatar] = useState(""); //트윗 작성자 아바타 url
+  const locationRef = ref(storage, `avatars/${userId}`); //유저 아바타 참조 객체
 
+  //이미지 모달창 여는 함수
   const openModal = () => {
     setIsOpen(true);
   };
 
+  //이미지 모달창 닫는 함수
   const closeModal = () => {
     setIsOpen(false);
   };
 
+  //트윗 삭제 함수
   const onDelete = async () => {
     const delConfirm = confirm("트윗을 삭제하시겠습니까?");
     if (!delConfirm || user?.uid !== userId) return;
@@ -126,6 +145,7 @@ export default function Tweet({
     }
   };
 
+  //유저 정보 클릭시 프로필 페이지로 이동하는 함수
   const goToProfile = () => {
     navigate("/profile", { state: { targetUserId: userId } });
   };
@@ -169,15 +189,11 @@ export default function Tweet({
 
   //아바타 주소 받아오기
   const getAvatarURL = async () => {
-    if (userId === user?.uid) {
-      setAvatar(user?.photoURL!);
-    } else {
-      try {
-        const photoURL = await getDownloadURL(locationRef);
-        setAvatar(photoURL);
-      } catch {
-        setAvatar("");
-      }
+    try {
+      const photoURL = await getDownloadURL(locationRef);
+      setAvatar(photoURL);
+    } catch {
+      setAvatar("");
     }
   };
 
@@ -188,7 +204,7 @@ export default function Tweet({
   return (
     <Wrapper>
       <Column>
-        <UserContainer>
+        <InfoContainer>
           <AvatarWrapper onClick={goToProfile}>
             {avatar ? (
               <AvatarImg src={avatar} />
@@ -227,7 +243,7 @@ export default function Tweet({
               </svg>
             </DeleteButton>
           ) : null}
-        </UserContainer>
+        </InfoContainer>
         <Payload>{tweet}</Payload>
       </Column>
       {photo ? (

@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
-import Userbox from "../components/user";
 import Tweet from "../components/tweet";
 import styled from "styled-components";
-import FollowProfile from "../components/follow-profile";
+import FollowProfile from "../components/user";
 
 interface User {
   id: string;
@@ -39,7 +38,7 @@ const SearchInput = styled.input`
   padding: 0.75rem 1.25rem;
   margin: 0.25rem 0;
   border-radius: 0.75rem;
-  border: 2px solid transparent;
+  border: 0.125rem solid transparent;
   font-size: 1rem;
   background-color: ${(props) => props.theme.colors.secondary};
   color: ${(props) => props.theme.colors.primaryText};
@@ -47,7 +46,7 @@ const SearchInput = styled.input`
     color: ${(props) => props.theme.colors.secondaryText};
   }
   &:focus {
-    border: 2px solid ${(props) => props.theme.colors.primary};
+    border: 0.125rem solid ${(props) => props.theme.colors.primary};
     outline: none;
   }
 `;
@@ -154,7 +153,7 @@ const SearchPage: React.FC = () => {
             userResults.map((user) => (
               <FollowProfile
                 key={user.id}
-                targetUserId={user.id}
+                targetUserId={user.userId}
                 nickname={user.nickname}
               />
             ))

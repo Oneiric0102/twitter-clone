@@ -2,21 +2,16 @@ import styled from "styled-components";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { useEffect, useState } from "react";
-import { getAuth } from "firebase/auth";
 import { getFollowers, getFollowing } from "../utils/followInfo";
 import { useLocation, useNavigate } from "react-router-dom";
-import FollowProfile from "../components/follow-profile";
+import User from "../components/user";
 
-const Wrapper = styled.div`
-  display: grid;
-  gap: 50px;
-  overflow-y: scroll;
-  grid-template-rows: 1fr 5fr;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-`;
+/*
+  파일명 : src/routers/follow.tsx
+  용도 : 팔로워, 팔로잉 목록 페이지
+*/
 
+//뒤로가기 버튼 스타일
 const Back = styled.button`
   width: 3rem;
   background-color: transparent;
@@ -26,6 +21,7 @@ const Back = styled.button`
   cursor: pointer;
 `;
 
+//상단 제목 스타일
 const Title = styled.div`
   ${(props) => props.theme.flex.rowLeftCenter};
   gap: 1rem;
@@ -33,10 +29,12 @@ const Title = styled.div`
   width: 100%;
 `;
 
+//상단 제목 폰트 크기 설정
 const TitleName = styled.div`
   font-size: 1.5rem;
 `;
 
+//팔로우,팔로잉 목록 스타일
 const UserList = styled.div`
   ${(props) => props.theme.flex.columnCenter};
   width: calc(100% -2rem);
@@ -44,6 +42,7 @@ const UserList = styled.div`
   gap: 1rem;
 `;
 
+//유저 목록이 없을 경우 메세지 스타일
 const NoneUser = styled.div`
   ${(props) => props.theme.flex.rowCenter};
   width: 100%;
@@ -58,14 +57,16 @@ interface UserInfo {
 }
 
 export default function Follow() {
-  const [followers, setFollowers] = useState<UserInfo[]>([]);
-  const [following, setFollowing] = useState<UserInfo[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [showFollowers, setShowFollowers] = useState<boolean>(true);
   const location = useLocation();
-  const target = location.state.targetUserId;
+  const [followers, setFollowers] = useState<UserInfo[]>([]); //팔로워 목록
+  const [following, setFollowing] = useState<UserInfo[]>([]); //팔로잉 목록
+  const [loading, setLoading] = useState<boolean>(true);
+  const showFollowers = location.state.showFollowers; //true : 팔로워 / false : 팔로잉
+
+  const target = location.state.targetUserId; //목록 출력 대상 유저 uid
   const navigate = useNavigate();
 
+  //uid로 유저 닉네임 가져오는 함수
   const getNickname = async (userIds: string[]) => {
     let result: UserInfo[] = [];
     for (let userId of userIds) {
@@ -86,27 +87,30 @@ export default function Follow() {
   };
 
   useEffect(() => {
-    setShowFollowers(location.state.showFollowers);
+    //대상 유저가 존재한다면
     if (target) {
+      //팔로우, 팔로잉 데이터 가져오기
       const fetchData = async () => {
-        const [followersList, followingList] = await Promise.all([
-          getFollowers(target),
-          getFollowing(target),
-        ]);
-        const [followerInfo, followingInfo] = await Promise.all([
-          getNickname(followersList),
-          getNickname(followingList),
-        ]);
-        setFollowers(followerInfo);
-        setFollowing(followingInfo);
+        if (showFollowers) {
+          const followersList = await getFollowers(target);
+          const followerInfo = await getNickname(followersList);
+
+          setFollowers(followerInfo);
+        } else {
+          const followingList = await getFollowing(target);
+          const followingInfo = await getNickname(followingList);
+
+          setFollowing(followingInfo);
+        }
+        console.log(showFollowers);
+        console.log(following);
+        console.log(followers);
         setLoading(false);
       };
 
       fetchData();
     }
   }, [target]);
-
-  useEffect(() => {}, [followers, following]);
 
   const handleBackClick = () => {
     navigate(-1);
@@ -142,10 +146,7 @@ export default function Follow() {
         ) : (
           <UserList>
             {followers.map((info) => (
-              <FollowProfile
-                targetUserId={info.userId}
-                nickname={info.nickname}
-              />
+              <User targetUserId={info.userId} nickname={info.nickname} />
             ))}
           </UserList>
         )
@@ -154,10 +155,7 @@ export default function Follow() {
       ) : (
         <UserList>
           {following.map((info) => (
-            <FollowProfile
-              targetUserId={info.userId}
-              nickname={info.nickname}
-            />
+            <User targetUserId={info.userId} nickname={info.nickname} />
           ))}
         </UserList>
       )}

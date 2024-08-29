@@ -14,6 +14,13 @@ import {
   Button,
 } from "../components/auth-components";
 import GoogleButton from "../components/google-btn";
+
+/*
+  파일명 : src/routes/login.tsx
+  용도 : 로그인 페이지
+*/
+
+//로그인 Form 입력 타입 정의
 type Inputs = {
   email: string;
   password: string;
@@ -24,6 +31,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  //로그인 Form
   const { register, handleSubmit } = useForm<Inputs>({
     mode: "onSubmit",
     defaultValues: {
@@ -32,6 +40,7 @@ export default function Login() {
     },
   });
 
+  //로그인 Submit 함수
   const onSubmit: SubmitHandler<Inputs> = async (data: Inputs) => {
     setError("");
     if (isLoading || data.email === "" || data.password === "") return;
@@ -41,7 +50,7 @@ export default function Login() {
       navigate("/");
     } catch (e) {
       if (e instanceof FirebaseError) {
-        setError(e.message);
+        setError("로그인 정보가 올바르지 않습니다.");
       }
     } finally {
       setIsLoading(false);
@@ -57,7 +66,8 @@ export default function Login() {
             required: true,
           })}
           placeholder="Email"
-          type="email"
+          type="text"
+          inputMode="email"
         />
         <Input
           {...register("password", { required: true })}
@@ -67,9 +77,9 @@ export default function Login() {
         <Switcher>
           계정이 없으신가요? <Link to="/create-account">가입하기 &rarr;</Link>
         </Switcher>
+        {error !== "" ? <Error>{error}</Error> : null}
         <Button type="submit" value={isLoading ? "Loading..." : "Log in"} />
       </Form>
-      {error !== "" ? <Error>{error}</Error> : null}
       <GoogleButton />
     </Wrapper>
   );

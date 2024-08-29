@@ -7,8 +7,10 @@ import {
   collection,
   getDocs,
   limit,
+  onSnapshot,
   orderBy,
   query,
+  Unsubscribe,
   where,
 } from "firebase/firestore";
 import { ITweet } from "../components/timeline";
@@ -17,6 +19,12 @@ import FollowButton from "../components/follow-btn";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getFollowers, getFollowing } from "../utils/followInfo";
 
+/*
+  파일명 : src/routers/profile.tsx
+  용도 : 유저 프로필 페이지
+*/
+
+//전체 컨테이너 스타일
 const Wrapper = styled.div`
   display: flex;
   align-items: center;
@@ -24,13 +32,15 @@ const Wrapper = styled.div`
   padding: 2.5rem 0rem;
   gap: 20px;
 `;
+
+//아바타 업데이트 input 디자인, label 사용
 const AvatarUpload = styled.label`
   width: 5rem;
   overflow: hidden;
   height: 5rem;
   border-radius: 50%;
   background-color: ${(props) => props.theme.colors.primary};
-  cursor: pointer;
+  cursor: ${(props) => props.className};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -39,17 +49,24 @@ const AvatarUpload = styled.label`
   }
 `;
 
+//아바타 이미지 크기 설정
 const AvatarImg = styled.img`
   width: 100%;
+  height: 100%;
 `;
+
+//파일첨푸 input 안보이게 설정
 const AvatarInput = styled.input`
   display: none;
 `;
+
+//유저 닉네임 스타일
 const Name = styled.span`
   color: ${(props) => props.theme.colors.primaryText};
   font-size: 1.25rem;
 `;
 
+//유저 작성 트윗 목록 컨테이너 스타일
 const Tweets = styled.div`
   ${(props) => props.theme.flex.columnCenterTop};
   width: calc(100% - 2rem);
@@ -59,34 +76,49 @@ const Tweets = styled.div`
   margin-top: 1rem;
 `;
 
+//Row 기준으로 나열하기 위한 컨테이너
 const Row = styled.div`
   ${(props) => props.theme.flex.rowCenter};
   gap: 1rem;
 `;
+
+//follow 페이지로 이동하기 위한 링크 스타일
 const FollowLink = styled.a`
   ${(props) => props.theme.flex.rowCenter};
   gap: 0.5rem;
   cursor: pointer;
 `;
 
+//팔로잉, 팔로워 숫자 스타일
 const FollowNumber = styled.div`
   color: ${(props) => props.theme.colors.primaryText};
   font-weight: bold;
 `;
+
+//팔로잉, 팔로워 문자 스타일
 const FollowLabel = styled.div`
   color: ${(props) => props.theme.colors.secondaryText};
 `;
 
+//작성한 트윗이 없을경우 출력되는 요소
+const NoneDiv = styled.div`
+  ${(props) => props.theme.flex.rowCenter};
+  width: 100%;
+  padding: 5rem 0;
+  font-size: 1.5rem;
+  color: ${(props) => props.theme.colors.secondaryText};
+  border-top: 1px solid ${(props) => props.theme.colors.border};
+`;
 const Profile: React.FC = () => {
-  const user = auth.currentUser;
+  const user = auth.currentUser; //현재유저
   const location = useLocation();
-  const target = location.state.targetUserId;
-  const [nickname, setNickname] = useState("");
-  const [avatar, setAvatar] = useState("");
-  const [tweets, setTweets] = useState<ITweet[]>([]);
-  const [followers, setFollowers] = useState<String[]>([]);
-  const [following, setFollowing] = useState<String[]>([]);
-  const locationRef = ref(storage, `avatars/${target}`);
+  const target = location.state.targetUserId; //프로필 확인 대상 유저 uid
+  const [nickname, setNickname] = useState(""); //대상 유저의 닉네임
+  const [avatar, setAvatar] = useState(""); //대상 유저의 아바타
+  const [tweets, setTweets] = useState<ITweet[]>([]); //대상 유저의 트윗 목록
+  const [followers, setFollowers] = useState<String[]>([]); //대상 유저의 팔로워 목록
+  const [following, setFollowing] = useState<String[]>([]); //대상 유저의 팔로잉 목록
+  const locationRef = ref(storage, `avatars/${target}`); //대상 유저의 아바타 참조
   const navigate = useNavigate();
 
   //프로필 사진 리사이즈 함수
@@ -154,15 +186,11 @@ const Profile: React.FC = () => {
 
   //아바타 주소 받아오기
   const getAvatarURL = async () => {
-    if (target === user?.uid) {
-      setAvatar(user?.photoURL!);
-    } else {
-      try {
-        const photoURL = await getDownloadURL(locationRef);
-        setAvatar(photoURL);
-      } catch {
-        setAvatar("");
-      }
+    try {
+      const photoURL = await getDownloadURL(locationRef);
+      setAvatar(photoURL);
+    } catch {
+      setAvatar("");
     }
   };
 
@@ -185,29 +213,38 @@ const Profile: React.FC = () => {
     }
   };
 
-  //유저 트윗 목록 가져오기
-  const fetchTweets = async () => {
-    const tweetQuery = query(
-      collection(db, "tweets"),
-      where("userId", "==", target),
-      orderBy("createdAt", "desc"),
-      limit(25)
-    );
-    const snapshot = await getDocs(tweetQuery);
-    const tweets = snapshot.docs.map((doc) => {
-      const { tweet, createdAt, userId, username, photo } = doc.data();
-      return {
-        tweet,
-        createdAt,
-        userId,
-        username,
-        photo,
-        id: doc.id,
-      };
-    });
-    setTweets(tweets);
-  };
+  //트윗 목록 불러오기
+  useEffect(() => {
+    let unsubscrive: Unsubscribe | null = null;
+    const fetchTweets = async () => {
+      const tweetsQuery = query(
+        collection(db, "tweets"),
+        where("userId", "==", target),
+        orderBy("createdAt", "desc"),
+        limit(25)
+      );
+      unsubscrive = await onSnapshot(tweetsQuery, (snapshot) => {
+        const tweets = snapshot.docs.map((doc) => {
+          const { tweet, createdAt, userId, username, photo } = doc.data();
+          return {
+            tweet,
+            createdAt,
+            userId,
+            username,
+            photo,
+            id: doc.id,
+          };
+        });
+        setTweets(tweets);
+      });
+    };
+    fetchTweets();
+    return () => {
+      unsubscrive && unsubscrive();
+    };
+  }, [target]);
 
+  //팔로우 정보 가져오는 함수
   const fetchFolloweInfo = async () => {
     const followerList = await getFollowers(target);
     const followingList = await getFollowing(target);
@@ -224,14 +261,16 @@ const Profile: React.FC = () => {
 
   //초기설정
   useEffect(() => {
-    fetchTweets();
     getAvatarURL();
     getNickname();
     fetchFolloweInfo();
   }, [target]);
   return (
     <Wrapper>
-      <AvatarUpload htmlFor="avatar">
+      <AvatarUpload
+        htmlFor="avatar"
+        className={user?.uid === target ? "pointer" : "default"}
+      >
         {avatar ? (
           <AvatarImg src={avatar} />
         ) : (
@@ -269,11 +308,15 @@ const Profile: React.FC = () => {
         </FollowLink>
       </Row>
       {user?.uid !== target ? <FollowButton targetUserId={target} /> : null}
-      <Tweets>
-        {tweets.map((tweet) => (
-          <Tweet key={tweet.id} {...tweet} />
-        ))}
-      </Tweets>
+      {tweets.length === 0 ? (
+        <NoneDiv>작성한 트윗이 없습니다.</NoneDiv>
+      ) : (
+        <Tweets>
+          {tweets.map((tweet) => (
+            <Tweet key={tweet.id} {...tweet} />
+          ))}
+        </Tweets>
+      )}
     </Wrapper>
   );
 };
