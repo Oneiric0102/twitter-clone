@@ -3775,8 +3775,10 @@ Content-Type: `+u.contentType+`\r
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 26rem;
-  padding: 4rem 0;
+  width: 100%;
+  max-width: 26rem;
+  min-width: 20rem;
+  padding: 4rem 2rem;
 `,Tk=H.form`
   ${t=>t.theme.flex.columnCenter}
   margin-top: 3rem;
