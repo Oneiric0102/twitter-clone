@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta http-equiv="refresh" content="0; url=/" />
-    <script>
-      // GitHub Pages에서 React Router와 같은 클라이언트 측 라우팅을 지원하기 위해
-      // 올바른 경로로 리디렉션하는 스크립트
-      var redirectTo =
-        window.location.pathname.replace(/\/$/, "") + window.location.search;
-      if (redirectTo === "") {
-        redirectTo = "/";
+    <script type="text/javascript">
+      var currentPath = window.location.pathname;
+      var currentSearch = window.location.search;
+
+      if (!currentPath.includes("index.html")) {
+        window.history.replaceState(
+          null,
+          "",
+          "/repository-name" + currentPath + currentSearch
+        );
+        window.location.replace("/repository-name/");
       }
-      window.location.replace(redirectTo);
     </script>
   </head>
   <body></body>
