@@ -18,42 +18,47 @@ const Wrapper = styled.div`
   ${theme.flex.rowCenter};
 `;
 
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: (
+        <ProtectedRoute>
+          <Layout />
+        </ProtectedRoute>
+      ),
+      children: [
+        {
+          path: "",
+          element: <Home />,
+        },
+        {
+          path: "/profile",
+          element: <Profile />,
+        },
+        {
+          path: "/follow",
+          element: <Follow />,
+        },
+        {
+          path: "/search",
+          element: <Search />,
+        },
+      ],
+    },
+    {
+      path: "/login",
+      element: <Login />,
+    },
+    {
+      path: "/create-account",
+      element: <CreateAccount />,
+    },
+  ],
   {
-    path: "/",
-    element: (
-      <ProtectedRoute>
-        <Layout />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        path: "",
-        element: <Home />,
-      },
-      {
-        path: "/profile",
-        element: <Profile />,
-      },
-      {
-        path: "/follow",
-        element: <Follow />,
-      },
-      {
-        path: "/search",
-        element: <Search />,
-      },
-    ],
-  },
-  {
-    path: "/login",
-    element: <Login />,
-  },
-  {
-    path: "/create-account",
-    element: <CreateAccount />,
-  },
-]);
+    basename: "/twitter-clone",
+  }
+);
 
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);

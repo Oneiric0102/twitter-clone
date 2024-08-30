@@ -61,9 +61,16 @@ export default function Follow() {
   const [followers, setFollowers] = useState<UserInfo[]>([]); //팔로워 목록
   const [following, setFollowing] = useState<UserInfo[]>([]); //팔로잉 목록
   const [loading, setLoading] = useState<boolean>(true);
-  const showFollowers = location.state.showFollowers; //true : 팔로워 / false : 팔로잉
+  const showOption =
+    location?.state?.showOption ||
+    sessionStorage.getItem("showOption") ||
+    "follower";
 
-  const target = location.state.targetUserId; //목록 출력 대상 유저 uid
+  const target =
+    location?.state?.targetUserId ||
+    sessionStorage.getItem("followTargetUID") ||
+    ""; //목록 출력 대상 유저 uid
+
   const navigate = useNavigate();
 
   //uid로 유저 닉네임 가져오는 함수
@@ -87,11 +94,13 @@ export default function Follow() {
   };
 
   useEffect(() => {
+    //새로고침 오류 방지용 변수 저장
+    sessionStorage.setItem("followTargetUID", target);
     //대상 유저가 존재한다면
     if (target) {
       //팔로우, 팔로잉 데이터 가져오기
       const fetchData = async () => {
-        if (showFollowers) {
+        if (showOption === "follower") {
           const followersList = await getFollowers(target);
           const followerInfo = await getNickname(followersList);
 
@@ -102,15 +111,16 @@ export default function Follow() {
 
           setFollowing(followingInfo);
         }
-        console.log(showFollowers);
-        console.log(following);
-        console.log(followers);
         setLoading(false);
       };
 
       fetchData();
     }
   }, [target]);
+
+  useEffect(() => {
+    sessionStorage.setItem("showOption", showOption);
+  }, [showOption]);
 
   const handleBackClick = () => {
     navigate(-1);
@@ -137,12 +147,12 @@ export default function Follow() {
             />
           </svg>
         </Back>
-        <TitleName>{showFollowers ? "팔로우" : "팔로잉"}</TitleName>
+        <TitleName>{showOption === "follower" ? "팔로워" : "팔로잉"}</TitleName>
       </Title>
 
-      {showFollowers ? (
+      {showOption === "follower" ? (
         followers.length === 0 ? (
-          <NoneUser> 팔로우중인 유저가 없습니다. </NoneUser>
+          <NoneUser> 팔로워가 없습니다. </NoneUser>
         ) : (
           <UserList>
             {followers.map((info) => (

@@ -112,7 +112,10 @@ const NoneDiv = styled.div`
 const Profile: React.FC = () => {
   const user = auth.currentUser; //현재유저
   const location = useLocation();
-  const target = location.state.targetUserId; //프로필 확인 대상 유저 uid
+  const target =
+    location?.state?.targetUserId ||
+    sessionStorage.getItem("profileTargetUID") ||
+    user?.uid; //프로필 확인 대상 유저 uid
   const [nickname, setNickname] = useState(""); //대상 유저의 닉네임
   const [avatar, setAvatar] = useState(""); //대상 유저의 아바타
   const [tweets, setTweets] = useState<ITweet[]>([]); //대상 유저의 트윗 목록
@@ -215,6 +218,8 @@ const Profile: React.FC = () => {
 
   //트윗 목록 불러오기
   useEffect(() => {
+    //새로고침 오류 방지용 변수 저장
+    sessionStorage.setItem("profileTargetUID", target);
     let unsubscrive: Unsubscribe | null = null;
     const fetchTweets = async () => {
       const tweetsQuery = query(
@@ -253,9 +258,9 @@ const Profile: React.FC = () => {
     setFollowing(followingList);
   };
 
-  const goToFollow = (showFollowers: boolean) => {
+  const goToFollow = (showOption: string) => {
     navigate("/follow", {
-      state: { targetUserId: target, showFollowers: showFollowers },
+      state: { targetUserId: target, showOption: showOption },
     });
   };
 
@@ -298,11 +303,11 @@ const Profile: React.FC = () => {
       ) : null}
       <Name>{nickname ? nickname : "Anonymous"}</Name>
       <Row>
-        <FollowLink onClick={() => goToFollow(true)}>
+        <FollowLink onClick={() => goToFollow("follower")}>
           <FollowNumber>{followers.length}</FollowNumber>{" "}
-          <FollowLabel>팔로우</FollowLabel>
+          <FollowLabel>팔로워</FollowLabel>
         </FollowLink>
-        <FollowLink onClick={() => goToFollow(false)}>
+        <FollowLink onClick={() => goToFollow("following")}>
           <FollowNumber> {following.length} </FollowNumber>{" "}
           <FollowLabel>팔로잉</FollowLabel>
         </FollowLink>
