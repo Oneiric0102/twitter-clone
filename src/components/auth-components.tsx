@@ -11,8 +11,10 @@ export const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 26rem;
-  padding: 4rem 0;
+  width: 100%;
+  max-width: 26rem;
+  min-width: 20rem;
+  padding: 4rem 2rem;
 `;
 
 //로그인, 회원가입 폼 스타일
